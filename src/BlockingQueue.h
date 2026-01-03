@@ -44,7 +44,7 @@ public:
         backingQueue.erase(std::remove(backingQueue.begin(), backingQueue.end(), elem), backingQueue.end());
     }
 
-    size_t size() {
+    size_t size() const {
         std::lock_guard<std::recursive_mutex> lock(mutex);
         return backingQueue.size();
     }
@@ -66,7 +66,7 @@ public:
 
 private:
     std::deque<T> backingQueue{};
-    std::recursive_mutex mutex{};
+    mutable std::recursive_mutex mutex{};
     std::condition_variable_any waitObj{};
 };
 

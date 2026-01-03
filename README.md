@@ -418,6 +418,10 @@ The script will:
 ## Mac
 Mac is currently not officially supported, but you may be able to build it using similar instructions as for Linux. Note that you'll need to ensure all dependencies are available via Homebrew or MacPorts.
 
+## Troubleshooting
+
+If you encounter build issues, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common problems and solutions.
+
 ---
 
 ## Technical Details

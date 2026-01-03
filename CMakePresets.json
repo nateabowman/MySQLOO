@@ -7,23 +7,31 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "FILEPATH",
-          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          "value": "$env{USERPROFILE}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
+        "VCPKG_ROOT": {
+          "type": "PATH",
+          "value": "$env{USERPROFILE}/vcpkg"
         }
+      },
+      "environment": {
+        "VCPKG_ROOT": "$env{USERPROFILE}/vcpkg"
       }
     },
     {
       "name": "windows-x86-release",
       "displayName": "Windows x86 Release",
       "inherits": "vcpkg-base",
-      "generator": "Ninja",
+      "generator": "Visual Studio 18 2026",
       "architecture": {
-        "value": "x86",
-        "strategy": "external"
+        "value": "Win32",
+        "strategy": "set"
       },
       "binaryDir": "${sourceDir}/cmake-build-x86-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-static"
+        "VCPKG_TARGET_TRIPLET": "x86-windows-static",
+        "CMAKE_VS_INCLUDE_BUILD_INSIGHTS": "OFF"
       },
       "condition": {
         "type": "equals",
@@ -54,11 +62,22 @@
     {
       "name": "linux-x86-release",
       "displayName": "Linux x86 Release",
-      "inherits": "vcpkg-base",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/cmake-build-x86-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
+        "VCPKG_ROOT": {
+          "type": "PATH",
+          "value": "$env{HOME}/vcpkg"
+        },
         "VCPKG_TARGET_TRIPLET": "x86-linux"
+      },
+      "environment": {
+        "VCPKG_ROOT": "$env{HOME}/vcpkg"
       },
       "condition": {
         "type": "equals",
@@ -69,11 +88,22 @@
     {
       "name": "linux-x64-release",
       "displayName": "Linux x64 Release",
-      "inherits": "vcpkg-base",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/cmake-build-x64-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
+        "VCPKG_ROOT": {
+          "type": "PATH",
+          "value": "$env{HOME}/vcpkg"
+        },
         "VCPKG_TARGET_TRIPLET": "x64-linux"
+      },
+      "environment": {
+        "VCPKG_ROOT": "$env{HOME}/vcpkg"
       },
       "condition": {
         "type": "equals",

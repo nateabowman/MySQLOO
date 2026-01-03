@@ -1,18 +1,57 @@
+# Build directories
 /solutions
-/out/windows/gmsv_mysqloo_win32.iobj
-/out/windows/gmsv_mysqloo_win32.ipdb
-/out/windows/gmsv_mysqloo_win32.pdb
-/premake4
-/premake4.exe
-/premake5
-/premake5.exe
 /out
-.vscode
-*.zip
 cmake-build-debug/
 cmake-build-release/
 cmake-build-x64-release/
 cmake-build-x86-release/
-.idea
-.vs
-.cache
+cmake-build-*/
+
+# Build artifacts
+*.dll
+*.so
+*.dylib
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.a
+*.obj
+*.o
+*.iobj
+*.ipdb
+*.tlog
+*.log
+
+# Premake
+/premake4
+/premake4.exe
+/premake5
+/premake5.exe
+
+# IDE
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+
+# Package managers
+vcpkg_installed/
+.vcpkg/
+
+# Archives
+*.zip
+*.tar.gz
+*.7z
+
+# OS
+.DS_Store
+Thumbs.db
+*.cache
+
+# Temporary files
+*.tmp
+*.bak
+*.orig

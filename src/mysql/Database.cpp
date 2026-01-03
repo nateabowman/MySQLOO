@@ -125,7 +125,7 @@ void Database::wait() {
 /* Escapes an unescaped string using the database taking into account the charset of the database.
  * This might break if the charset of the database is changed after the connection was done
  */
-std::string Database::escape(const std::string &str) const {
+std::string Database::escape(const std::string &str) {
     //No query mutex needed since this doesn't use the connection at all
     std::lock_guard<std::mutex> lock(m_connectMutex);
     if (!m_connectionDone || m_sql == nullptr) {
