@@ -4,6 +4,7 @@
 #include <iostream>
 #include <utility>
 #include <cstddef>
+#include <cstdlib>
 #include "mysqld_error.h"
 #include "../lua/LuaObject.h"
 #include "errmsg.h"
@@ -175,13 +176,34 @@ void Database::connect() {
 }
 
 void SSLSettings::applySSLSettings(MYSQL *m_sql) const {
-    // If SSL settings were not explicitly set, don't apply any SSL options (default: disabled)
+    // If SSL settings were not explicitly set, explicitly disable SSL
+    // The MariaDB connector defaults to requiring SSL when OpenSSL is linked,
+    // so we must explicitly disable it to allow non-SSL connections
     if (!this->ssl_explicitly_set) {
+        // Try to disable SSL using MYSQL_OPT_SSL_MODE if available
+        #ifdef MYSQL_OPT_SSL_MODE
+        unsigned int ssl_mode_disabled = 0;
+        mysql_options(m_sql, MYSQL_OPT_SSL_MODE, &ssl_mode_disabled);
+        #else
+        // For older versions: Set empty strings for all SSL options and call mysql_ssl_set
+        // This tells the connector not to use SSL certificates
+        mysql_options(m_sql, MYSQL_OPT_SSL_KEY, "");
+        mysql_options(m_sql, MYSQL_OPT_SSL_CERT, "");
+        mysql_options(m_sql, MYSQL_OPT_SSL_CA, "");
+        mysql_options(m_sql, MYSQL_OPT_SSL_CAPATH, "");
+        mysql_options(m_sql, MYSQL_OPT_SSL_CIPHER, "");
+        mysql_ssl_set(m_sql, "", "", "", "", "");
+        #endif
         return;
     }
     
     // If SSL is explicitly disabled, don't set any SSL options
     if (this->ssl_mode == 0) {
+        #ifdef MYSQL_OPT_SSL_MODE
+        unsigned int ssl_mode_disabled = 0;
+        mysql_options(m_sql, MYSQL_OPT_SSL_MODE, &ssl_mode_disabled);
+        #endif
+        // Do NOT call mysql_ssl_set - this should prevent SSL from being used
         return;
     }
     
@@ -192,6 +214,16 @@ void SSLSettings::applySSLSettings(MYSQL *m_sql) const {
     #endif
     
     // Set SSL certificate options if provided
+    const char *key_ptr = this->key.empty() ? nullptr : this->key.c_str();
+    const char *cert_ptr = this->cert.empty() ? nullptr : this->cert.c_str();
+    const char *ca_ptr = this->ca.empty() ? nullptr : this->ca.c_str();
+    const char *capath_ptr = this->capath.empty() ? nullptr : this->capath.c_str();
+    const char *cipher_ptr = this->cipher.empty() ? nullptr : this->cipher.c_str();
+    
+    // Use mysql_ssl_set for setting SSL parameters (works with all MariaDB versions)
+    mysql_ssl_set(m_sql, key_ptr, cert_ptr, ca_ptr, capath_ptr, cipher_ptr);
+    
+    // Also set via mysql_options for compatibility
     if (!this->key.empty()) {
         mysql_options(m_sql, MYSQL_OPT_SSL_KEY, this->key.c_str());
     }
@@ -394,6 +426,9 @@ void Database::connectRun() {
     {
         auto connectionSignaler = finally([&] { m_connectWakeupVariable.notify_one(); });
         std::lock_guard<std::mutex> lock(this->m_connectMutex);
+        // Set environment variable to disable SSL peer verification
+        // This helps the MariaDB connector allow non-SSL connections
+        setenv("MARIADB_TLS_DISABLE_PEER_VERIFICATION", "1", 0);
         this->m_sql = mysql_init(nullptr);
         if (this->m_sql == nullptr) {
             m_success = false;
@@ -403,6 +438,9 @@ void Database::connectRun() {
             return;
         }
         this->applyTimeoutSettings();
+        // ALWAYS apply SSL settings to explicitly disable SSL when not set
+        // The MariaDB connector defaults to requiring SSL when OpenSSL is linked,
+        // so we must explicitly disable it even when ssl_explicitly_set is false
         this->customSSLSettings.applySSLSettings(this->m_sql);
         const char *socketStr = (this->socket.length() == 0) ? nullptr : this->socket.c_str();
         unsigned long clientFlag = (this->useMultiStatements) ? CLIENT_MULTI_STATEMENTS : 0;
